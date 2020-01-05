@@ -261,4 +261,149 @@ def import_candles(request_json: ImportCandlesRequestJson, authorization: Option
 
 
 @fastapi_app.delete("/import-candles")
-def cancel_import_candles(request_json: CancelRequestJson, authorizati
+def cancel_import_candles(request_json: CancelRequestJson, authorization: Optional[str] = Header(None)):
+    from jesse.services.multiprocessing import process_manager
+
+    if not authenticator.is_valid_token(authorization):
+        return authenticator.unauthorized_response()
+
+    process_manager.cancel_process('candles-' + request_json.id)
+
+    return JSONResponse({'message': f'Candles process with ID of {request_json.id} was requested for termination'}, status_code=202)
+
+
+@fastapi_app.post("/backtest")
+def backtest(request_json: BacktestRequestJson, authorization: Optional[str] = Header(None)):
+    from jesse.services.multiprocessing import process_manager
+
+    if not authenticator.is_valid_token(authorization):
+        return authenticator.unauthorized_response()
+
+    validate_cwd()
+
+    from jesse.modes.backtest_mode import run as run_backtest
+
+    process_manager.add_task(
+        run_backtest,
+        'backtest-' + str(request_json.id),
+        request_json.debug_mode,
+        request_json.config,
+        request_json.routes,
+        request_json.extra_routes,
+        request_json.start_date,
+        request_json.finish_date,
+        None,
+        request_json.export_chart,
+        request_json.export_tradingview,
+        request_json.export_full_reports,
+        request_json.export_csv,
+        request_json.export_json
+    )
+
+    return JSONResponse({'message': 'Started backtesting...'}, status_code=202)
+
+
+@fastapi_app.post("/optimization")
+async def optimization(request_json: OptimizationRequestJson, authorization: Optional[str] = Header(None)):
+    if not authenticator.is_valid_token(authorization):
+        return authenticator.unauthorized_response()
+
+    from jesse.services.multiprocessing import process_manager
+
+    validate_cwd()
+
+    from jesse.modes.optimize_mode import run as run_optimization
+
+    process_manager.add_task(
+        run_optimization,
+        'optimize-' + str(request_json.id),
+        request_json.debug_mode,
+        request_json.config,
+        request_json.routes,
+        request_json.extra_routes,
+        request_json.start_date,
+        request_json.finish_date,
+        request_json.optimal_total,
+        request_json.export_csv,
+        request_json.export_json
+    )
+
+    # optimize_mode(start_date, finish_date, optimal_total, cpu, csv, json)
+
+    return JSONResponse({'message': 'Started optimization...'}, status_code=202)
+
+
+@fastapi_app.delete("/optimization")
+def cancel_optimization(request_json: CancelRequestJson, authorization: Optional[str] = Header(None)):
+    if not authenticator.is_valid_token(authorization):
+        return authenticator.unauthorized_response()
+
+    from jesse.services.multiprocessing import process_manager
+
+    process_manager.cancel_process('optimize-' + request_json.id)
+
+    return JSONResponse({'message': f'Optimization process with ID of {request_json.id} was requested for termination'}, status_code=202)
+
+
+@fastapi_app.get("/download/{mode}/{file_type}/{session_id}")
+def download(mode: str, file_type: str, session_id: str, token: str = Query(...)):
+    """
+    Log files require session_id because there is one log per each session. Except for the optimize mode
+    """
+    if not authenticator.is_valid_token(token):
+        return authenticator.unauthorized_response()
+
+    from jesse.modes import data_provider
+
+    return data_provider.download_file(mode, file_type, session_id)
+
+
+@fastapi_app.get("/download/optimize/log")
+def download_optimization_log(token: str = Query(...)):
+    """
+    Optimization logs don't have have session ID
+    """
+    if not authenticator.is_valid_token(token):
+        return authenticator.unauthorized_response()
+
+    from jesse.modes import data_provider
+
+    return data_provider.download_file('optimize', 'log')
+
+
+@fastapi_app.delete("/backtest")
+def cancel_backtest(request_json: CancelRequestJson, authorization: Optional[str] = Header(None)):
+    if not authenticator.is_valid_token(authorization):
+        return authenticator.unauthorized_response()
+
+    from jesse.services.multiprocessing import process_manager
+
+    process_manager.cancel_process('backtest-' + request_json.id)
+
+    return JSONResponse({'message': f'Backtest process with ID of {request_json.id} was requested for termination'}, status_code=202)
+
+
+@fastapi_app.on_event("shutdown")
+def shutdown_event():
+    from jesse.services.db import database
+    database.close_connection()
+
+
+if HAS_LIVE_TRADE_PLUGIN:
+    from jesse.services.web import fastapi_app, LiveRequestJson, LiveCancelRequestJson, GetCandlesRequestJson, \
+        GetLogsRequestJson, GetOrdersRequestJson
+    from jesse.services import auth as authenticator
+
+    @fastapi_app.post("/live")
+    def live(request_json: LiveRequestJson, authorization: Optional[str] = Header(None)) -> JSONResponse:
+        if not authenticator.is_valid_token(authorization):
+            return authenticator.unauthorized_response()
+
+        from jesse import validate_cwd
+
+        # dev_mode is used only by developers so it doesn't have to be a supported parameter
+        dev_mode: bool = False
+
+        validate_cwd()
+
+        #
