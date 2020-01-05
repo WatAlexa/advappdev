@@ -70,4 +70,26 @@ You can also contribute by submitting **bug reports** and **feature requests** o
 In that case, here's what you need to know:
 
 - Before starting to work on a PR, please **reach out** to make sure it **aligns** with the **project's roadmap** and **vision**.
-- If your PR makes changes to the source code, please make sure to **add unit tests**. If you're not sure how to do that, jus
+- If your PR makes changes to the source code, please make sure to **add unit tests**. If you're not sure how to do that, just check out some of the already existing [tests](https://github.com/jesse-ai/jesse/tree/master/tests).
+
+First, you need to install Jesse from the repository instead of PyPi:
+
+```sh
+# first, make sure that the PyPi version is not installed
+pip uninstall jesse
+
+# now install Jesse from the repository
+git clone https://github.com/jesse-ai/jesse.git
+cd jesse
+pip install -e .
+```
+
+Now every change you make to the code will be affected immediately.
+
+After every change, **make sure** your changes did not **break** any functionality by **running tests**:
+```
+pytest
+```
+
+## Disclaimer
+This software is for educational purposes only. USE THE SOFTWARE AT **YOUR OWN RISK**. THE AUTHORS AND ALL AFFILIATES ASSUME **NO RESPONSIBILITY FOR YOUR TRADING RESULTS**. **Do not risk money that you are afraid to lose**. There might be **bugs** in the code - this software DOES NOT come with **ANY warranty**.
