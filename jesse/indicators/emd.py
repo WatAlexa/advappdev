@@ -48,4 +48,28 @@ def bp_fast(price, period, delta):
     beta = np.cos(2 * np.pi / period)
     gamma = 1 / np.cos(4 * np.pi * delta / period)
     alpha = gamma - np.sqrt(gamma * gamma - 1)
-    bp = np.ze
+    bp = np.zeros_like(price)
+
+    for i in range(price.shape[0]):
+        if i > 2:
+            bp[i] = 0.5 * (1 - alpha) * (price[i] - price[i - 2]) + beta * (1 + alpha) * bp[i - 1] - alpha * bp[i - 2]
+        else:
+            bp[i] = 0.5 * (1 - alpha) * (price[i] - price[i - 2])
+    return bp
+
+
+@njit
+def peak_valley_fast(bp, price):
+    peak = np.copy(bp)
+    valley = np.copy(bp)
+
+    for i in range(price.shape[0]):
+        peak[i] = peak[i - 1]
+        valley[i] = valley[i - 1]
+        if i > 2:
+            if bp[i - 1] > bp[i] and bp[i - 1] > bp[i - 2]:
+                peak[i] = bp[i - 1]
+            if bp[i - 1] < bp[i] and bp[i - 1] < bp[i - 2]:
+                valley[i] = bp[i - 1]
+
+    return peak, valley
