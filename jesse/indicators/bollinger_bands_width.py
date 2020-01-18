@@ -1,4 +1,4 @@
-from collections import namedtuple
+from typing import Union
 
 import numpy as np
 import talib
@@ -8,14 +8,13 @@ from jesse.indicators.median_ad import median_ad
 
 from jesse.helpers import get_candle_source, slice_candles
 
-BollingerBands = namedtuple('BollingerBands', ['upperband', 'middleband', 'lowerband'])
 
-
-def bollinger_bands(candles: np.ndarray, period: int = 20, devup: float = 2, devdn: float = 2, matype: int = 0, devtype: int = 0,
+def bollinger_bands_width(candles: np.ndarray, period: int = 20, devup: float = 2, devdn: float = 2, matype: int = 0,
+                    devtype: int = 0,
                     source_type: str = "close",
-                    sequential: bool = False) -> BollingerBands:
+                    sequential: bool = False) -> Union[float, np.ndarray]:
     """
-    BBANDS - Bollinger Bands
+    BBW - Bollinger Bands Width - Bollinger Bands Bandwidth
 
     :param candles: np.ndarray
     :param period: int - default: 20
@@ -33,18 +32,20 @@ def bollinger_bands(candles: np.ndarray, period: int = 20, devup: float = 2, dev
     source = get_candle_source(candles, source_type=source_type)
 
     if devtype == 0:
-       dev = talib.STDDEV(source, period)
+      dev = talib.STDDEV(source, period)
     elif devtype == 1:
-       dev = mean_ad(source, period, sequential=True)
+      dev = mean_ad(source, period, sequential=True)
     elif devtype == 2:
-       dev = median_ad(source, period, sequential=True)
+      dev = median_ad(source, period, sequential=True)
 
     middlebands = ma(source, period=period, matype=matype, sequential=True)
     upperbands = middlebands + devup * dev
     lowerbands = middlebands - devdn * dev
 
-
     if sequential:
-        return BollingerBands(upperbands, middlebands, lowerbands)
+        return (upperbands - lowerbands) / middlebands
     else:
-        return BollingerBands(upperbands[-1], middlebands[-1], lowerbands[-1])
+        return (upperbands[-1] - lowerbands[-1]) / middlebands[-1]
+
+
+
