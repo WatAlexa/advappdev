@@ -29,4 +29,14 @@ def keltner(candles: np.ndarray, period: int = 20, multiplier: float = 2, matype
     candles = slice_candles(candles, sequential)
 
     source = get_candle_source(candles, source_type=source_type)
-    e = ma(source, period=period, matype=matype, 
+    e = ma(source, period=period, matype=matype, sequential=True)
+    a = talib.ATR(candles[:, 3], candles[:, 4], candles[:, 2], timeperiod=period)
+
+    up = e + a * multiplier
+    mid = e
+    low = e - a * multiplier
+
+    if sequential:
+        return KeltnerChannel(up, mid, low)
+    else:
+        return KeltnerChannel(up[-1], mid[-1], low[-1])
