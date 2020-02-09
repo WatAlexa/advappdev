@@ -45,4 +45,24 @@ def lrsi_fast(alpha, candles):
         l3[i] = -gamma * l2[i] + l2[i - 1] + gamma * l3[i - 1]
 
     rsi = np.zeros_like(price)
-    for i in range
+    for i in range(candles[:, 2].shape[0]):
+        cu = 0
+        cd = 0
+
+        if l0[i] >= l1[i]:
+            cu = l0[i] - l1[i]
+        else:
+            cd = l1[i] - l0[i]
+
+        if l1[i] >= l2[i]:
+            cu = cu + l1[i] - l2[i]
+        else:
+            cd = cd + l2[i] - l1[i]
+
+        if l2[i] >= l3[i]:
+            cu = cu + l2[i] - l3[i]
+        else:
+            cd = cd + l3[i] - l2[i]
+
+        rsi[i] = 0 if cu + cd == 0 else cu / (cu + cd)
+    return rsi
