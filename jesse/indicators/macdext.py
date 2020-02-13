@@ -29,4 +29,25 @@ def macdext(candles: np.ndarray, fast_period: int = 12, fast_matype: int = 0, sl
     candles = slice_candles(candles, sequential)
 
     if fast_matype == 29 or slow_matype == 29 or signal_matype == 29:
-        raise
+        raise ValueError("VWAP not supported in macdext.")
+
+    ma_fast = ma(candles, period=fast_period, matype=fast_matype, source_type=source_type, sequential=True)
+    ma_slow = ma(candles, period=slow_period, matype=slow_matype,  source_type=source_type, sequential=True)
+    macd = ma_fast - ma_slow
+
+    if signal_matype == 24:
+        # volume needed.
+        candles[:, 2] = macd
+        candles_without_nan = candles[~np.isnan(candles).any(axis=1)]
+        macdsignal = ma(candles_without_nan, period=signal_period, matype=signal_matype, source_type="close", sequential=True)
+    else:
+        macd_without_nan = macd[~np.isnan(macd)]
+        macdsignal = ma(macd_without_nan, period=signal_period, matype=signal_matype, sequential=True)
+
+    macdsignal = same_length(candles, macdsignal)
+    macdhist = macd - macdsignal
+
+    if sequential:
+        return MACDEXT(macd, macdsignal, macdhist)
+    else:
+        return MACDEXT(macd[-1], macdsignal[-1], macdhist[-1])
