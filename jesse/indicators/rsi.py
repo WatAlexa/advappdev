@@ -1,3 +1,4 @@
+
 from typing import Union
 
 import numpy as np
@@ -7,13 +8,13 @@ from jesse.helpers import get_candle_source
 from jesse.helpers import slice_candles
 
 
-def roc(candles: np.ndarray, period: int = 10, source_type: str = "close", sequential: bool = False) -> Union[
+def rsi(candles: np.ndarray, period: int = 14, source_type: str = "close", sequential: bool = False) -> Union[
     float, np.ndarray]:
     """
-    ROC - Rate of change : ((price/prevPrice)-1)*100
+    RSI - Relative Strength Index
 
     :param candles: np.ndarray
-    :param period: int - default: 10
+    :param period: int - default: 14
     :param source_type: str - default: "close"
     :param sequential: bool - default: False
 
@@ -22,6 +23,6 @@ def roc(candles: np.ndarray, period: int = 10, source_type: str = "close", seque
     candles = slice_candles(candles, sequential)
 
     source = get_candle_source(candles, source_type=source_type)
-    res = talib.ROC(source, timeperiod=period)
+    r = talib.RSI(source, timeperiod=period)
 
-    return res if sequential else res[-1]
+    return r if sequential else r[-1]

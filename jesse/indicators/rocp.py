@@ -7,10 +7,10 @@ from jesse.helpers import get_candle_source
 from jesse.helpers import slice_candles
 
 
-def roc(candles: np.ndarray, period: int = 10, source_type: str = "close", sequential: bool = False) -> Union[
+def rocp(candles: np.ndarray, period: int = 10, source_type: str = "close", sequential: bool = False) -> Union[
     float, np.ndarray]:
     """
-    ROC - Rate of change : ((price/prevPrice)-1)*100
+    ROCP - Rate of change Percentage: (price-prevPrice)/prevPrice
 
     :param candles: np.ndarray
     :param period: int - default: 10
@@ -22,6 +22,6 @@ def roc(candles: np.ndarray, period: int = 10, source_type: str = "close", seque
     candles = slice_candles(candles, sequential)
 
     source = get_candle_source(candles, source_type=source_type)
-    res = talib.ROC(source, timeperiod=period)
+    res = talib.ROCP(source, timeperiod=period)
 
     return res if sequential else res[-1]
