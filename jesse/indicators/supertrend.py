@@ -61,4 +61,37 @@ def supertrend_fast(candles, atr, factor, period):
         prevLowerBand = lower_band[i - 1]
         currLowerBasic = lower_basic[i]
         if prevClose >= prevLowerBand:
-            # lower band will INCREA
+            # lower band will INCREASE in value only
+            lower_band[i] = max(currLowerBasic, prevLowerBand)
+
+        # >>>>>>>> previous period SuperTrend <<<<<<<<
+        if prevClose <= prevUpperBand:
+            super_trend[i - 1] = prevUpperBand
+        else:
+            super_trend[i - 1] = prevLowerBand
+        prevSuperTrend = super_trend[i - 1]
+
+    for i in range(period, len(candles)):
+        prevClose = candles[:, 2][i - 1]
+        prevUpperBand = upper_band[i - 1]
+        currUpperBand = upper_band[i]
+        prevLowerBand = lower_band[i - 1]
+        currLowerBand = lower_band[i]
+        prevSuperTrend = super_trend[i - 1]
+
+        # >>>>>>>>> current period SuperTrend <<<<<<<<<
+        if prevSuperTrend == prevUpperBand:  # if currently in DOWNTREND
+            if candles[:, 2][i] <= currUpperBand:
+                super_trend[i] = currUpperBand  # remain in DOWNTREND
+                changed[i] = False
+            else:
+                super_trend[i] = currLowerBand  # switch to UPTREND
+                changed[i] = True
+        elif prevSuperTrend == prevLowerBand:  # if currently in UPTREND
+            if candles[:, 2][i] >= currLowerBand:
+                super_trend[i] = currLowerBand  # remain in UPTREND
+                changed[i] = False
+            else:
+                super_trend[i] = currUpperBand  # switch to DOWNTREND
+                changed[i] = True
+    return super_trend, changed
