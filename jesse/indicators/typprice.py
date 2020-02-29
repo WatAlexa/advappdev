@@ -10,4 +10,13 @@ def typprice(candles: np.ndarray, sequential: bool = False) -> Union[float, np.n
     """
     TYPPRICE - Typical Price
 
-    :para
+    :param candles: np.ndarray
+    :param sequential: bool - default: False
+
+    :return: float | np.ndarray
+    """
+    candles = slice_candles(candles, sequential)
+
+    res = talib.TYPPRICE(candles[:, 3], candles[:, 4], candles[:, 2])
+
+    return res if sequential else res[-1]
