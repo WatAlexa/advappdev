@@ -104,4 +104,131 @@ exchange_info = {
             'backtesting': True,
             'live_trading': True,
         },
-        'requir
+        'required_live_plan': 'premium'
+    },
+    # BINANCE_US_SPOT
+    exchanges_enums.BINANCE_US_SPOT: {
+        'name': exchanges_enums.BINANCE_US_SPOT,
+        'url': 'https://binance.us',
+        'fee': 0.001,
+        'type': 'spot',
+        'supported_leverage_modes': ['cross', 'isolated'],
+        'supported_timeframes': BINANCE_TIMEFRAMES,
+        'modes': {
+            'backtesting': True,
+            'live_trading': True,
+        },
+        'required_live_plan': 'premium'
+    },
+    # BINANCE_PERPETUAL_FUTURES
+    exchanges_enums.BINANCE_PERPETUAL_FUTURES: {
+        'name': exchanges_enums.BINANCE_PERPETUAL_FUTURES,
+        'url': 'https://binance.com',
+        'fee': 0.0004,
+        'type': 'futures',
+        'supported_leverage_modes': ['cross', 'isolated'],
+        'supported_timeframes': BINANCE_TIMEFRAMES,
+        'modes': {
+            'backtesting': True,
+            'live_trading': True,
+        },
+        'required_live_plan': 'premium'
+    },
+    # BINANCE_PERPETUAL_FUTURES_TESTNET
+    exchanges_enums.BINANCE_PERPETUAL_FUTURES_TESTNET: {
+        'name': exchanges_enums.BINANCE_PERPETUAL_FUTURES_TESTNET,
+        'url': 'https://binance.com',
+        'fee': 0.0004,
+        'type': 'futures',
+        'supported_leverage_modes': ['cross', 'isolated'],
+        'supported_timeframes': BINANCE_TIMEFRAMES,
+        'modes': {
+            'backtesting': True,
+            'live_trading': True,
+        },
+        'required_live_plan': 'premium'
+    },
+    # COINBASE_SPOT
+    exchanges_enums.COINBASE_SPOT: {
+        'name': exchanges_enums.COINBASE_SPOT,
+        'url': 'https://pro.coinbase.com',
+        'fee': 0.005,
+        'type': 'spot',
+        'supported_leverage_modes': ['cross', 'isolated'],
+        'supported_timeframes': COINBASE_TIMEFRAMES,
+        'modes': {
+            'backtesting': True,
+            'live_trading': False,
+        },
+        'required_live_plan': 'premium'
+    },
+    # BITGET_USDT_PERPETUAL_TESTNET
+    exchanges_enums.BITGET_USDT_PERPETUAL_TESTNET: {
+        'name': exchanges_enums.BITGET_USDT_PERPETUAL_TESTNET,
+        'url': 'https://jesse.trade/bitget',
+        'fee': 0.0006,
+        'type': 'futures',
+        'supported_leverage_modes': ['cross', 'isolated'],
+        'supported_timeframes': BITGET_TIMEFRAMES,
+        'modes': {
+            'backtesting': False,
+            'live_trading': False,
+        },
+        'required_live_plan': 'free'
+    },
+    # BITGET_USDT_PERPETUAL
+    exchanges_enums.BITGET_USDT_PERPETUAL: {
+        'name': exchanges_enums.BITGET_USDT_PERPETUAL,
+        'url': 'https://jesse.trade/bitget',
+        'fee': 0.0006,
+        'type': 'futures',
+        'supported_leverage_modes': ['cross', 'isolated'],
+        'supported_timeframes': BITGET_TIMEFRAMES,
+        'modes': {
+            'backtesting': False,
+            'live_trading': True,
+        },
+        'required_live_plan': 'free'
+    },
+    # BITGET_SPOT
+    exchanges_enums.BITGET_SPOT: {
+        'name': exchanges_enums.BITGET_SPOT,
+        'url': 'https://jesse.trade/bitget',
+        'fee': 0.0006,
+        'type': 'spot',
+        'supported_leverage_modes': ['cross', 'isolated'],
+        'supported_timeframes': BITGET_TIMEFRAMES,
+        'modes': {
+            'backtesting': False,
+            # disabled for now
+            'live_trading': False,
+        },
+        'required_live_plan': 'free'
+    }
+}
+
+# list of supported exchanges for backtesting
+backtesting_exchanges = [k for k, v in exchange_info.items() if v['modes']['backtesting'] is True]
+backtesting_exchanges = list(sorted(backtesting_exchanges))
+
+# list of supported exchanges for live trading
+live_trading_exchanges = [k for k, v in exchange_info.items() if v['modes']['live_trading'] is True]
+live_trading_exchanges = list(sorted(live_trading_exchanges))
+
+# used for backtesting, and live trading when local candle generation is enabled:
+jesse_supported_timeframes = [
+    timeframes.MINUTE_1,
+    timeframes.MINUTE_3,
+    timeframes.MINUTE_5,
+    timeframes.MINUTE_15,
+    timeframes.MINUTE_30,
+    timeframes.MINUTE_45,
+    timeframes.HOUR_1,
+    timeframes.HOUR_2,
+    timeframes.HOUR_3,
+    timeframes.HOUR_4,
+    timeframes.HOUR_6,
+    timeframes.HOUR_8,
+    timeframes.HOUR_12,
+    timeframes.DAY_1,
+]
