@@ -48,4 +48,22 @@ class Exchange(ABC):
 
     @property
     @abstractmethod
-    def wallet_balance(self) -> float
+    def wallet_balance(self) -> float:
+        pass
+
+    @property
+    @abstractmethod
+    def available_margin(self) -> float:
+        pass
+
+    @abstractmethod
+    def on_order_submission(self, order: Order) -> None:
+        pass
+
+    @abstractmethod
+    def on_order_execution(self, order: Order) -> None:
+        pass
+
+    @abstractmethod
+    def on_order_cancellation(self, order: Order) -> None:
+        pass
