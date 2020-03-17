@@ -1,18 +1,20 @@
+
 import peewee
 
 
-class Ticker(peewee.Model):
+class Trade(peewee.Model):
     id = peewee.UUIDField(primary_key=True)
     # timestamp in milliseconds
     timestamp = peewee.BigIntegerField()
-    # the latest trades price
-    last_price = peewee.FloatField()
-    # the trading volume in the last 24 hours
-    volume = peewee.FloatField()
-    # the highest price in the last 24 hours
-    high_price = peewee.FloatField()
-    # the lowest price in the last 24 hours
-    low_price = peewee.FloatField()
+
+    price = peewee.FloatField()
+
+    buy_qty = peewee.FloatField()
+    sell_qty = peewee.FloatField()
+
+    buy_count = peewee.IntegerField()
+    sell_count = peewee.IntegerField()
+
     symbol = peewee.CharField()
     exchange = peewee.CharField()
 
@@ -30,4 +32,3 @@ class Ticker(peewee.Model):
 
         for a, value in attributes.items():
             setattr(self, a, value)
-
