@@ -398,4 +398,95 @@ def _get_fixed_jumped_candle(previous_candle: np.ndarray, candle: np.ndarray) ->
     """
     if previous_candle[2] < candle[1]:
         candle[1] = previous_candle[2]
-        candle[4] = min(previous_c
+        candle[4] = min(previous_candle[2], candle[4])
+    elif previous_candle[2] > candle[1]:
+        candle[1] = previous_candle[2]
+        candle[3] = max(previous_candle[2], candle[3])
+
+    return candle
+
+
+def _simulate_price_change_effect(real_candle: np.ndarray, exchange: str, symbol: str) -> None:
+    orders = store.orders.get_orders(exchange, symbol)
+
+    current_temp_candle = real_candle.copy()
+    executed_order = False
+
+    while True:
+        if len(orders) == 0:
+            executed_order = False
+        else:
+            for index, order in enumerate(orders):
+                if index == len(orders) - 1 and not order.is_active:
+                    executed_order = False
+
+                if not order.is_active:
+                    continue
+
+                if candle_includes_price(current_temp_candle, order.price):
+                    storable_temp_candle, current_temp_candle = split_candle(current_temp_candle, order.price)
+                    store.candles.add_candle(
+                        storable_temp_candle, exchange, symbol, '1m',
+                        with_execution=False,
+                        with_generation=False
+                    )
+                    p = selectors.get_position(exchange, symbol)
+                    p.current_price = storable_temp_candle[2]
+
+                    executed_order = True
+
+                    order.execute()
+
+                    # break from the for loop, we'll try again inside the while
+                    # loop with the new current_temp_candle
+                    break
+                else:
+                    executed_order = False
+
+        if not executed_order:
+            # add/update the real_candle to the store so we can move on
+            store.candles.add_candle(
+                real_candle, exchange, symbol, '1m',
+                with_execution=False,
+                with_generation=False
+            )
+            p = selectors.get_position(exchange, symbol)
+            if p:
+                p.current_price = real_candle[2]
+            break
+
+    _check_for_liquidations(real_candle, exchange, symbol)
+
+
+def _check_for_liquidations(candle: np.ndarray, exchange: str, symbol: str) -> None:
+    p: Position = selectors.get_position(exchange, symbol)
+
+    if not p:
+        return
+
+    # for now, we only support the isolated mode:
+    if p.mode != 'isolated':
+        return
+
+    if candle_includes_price(candle, p.liquidation_price):
+        closing_order_side = jh.closing_side(p.type)
+
+        # create the market order that is used as the liquidation order
+        order = Order({
+            'id': jh.generate_unique_id(),
+            'symbol': symbol,
+            'exchange': exchange,
+            'side': closing_order_side,
+            'type': order_types.MARKET,
+            'reduce_only': True,
+            'qty': jh.prepare_qty(p.qty, closing_order_side),
+            'price': p.bankruptcy_price
+        })
+
+        store.orders.add_order(order)
+
+        store.app.total_liquidations += 1
+
+        logger.info(f'{p.symbol} liquidated at {p.liquidation_price}')
+
+        order.execute()
