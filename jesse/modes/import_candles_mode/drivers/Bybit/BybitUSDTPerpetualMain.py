@@ -46,4 +46,37 @@ class BybitUSDTPerpetualMain(CandleExchange):
 
     def fetch(self, symbol: str, start_timestamp: int, timeframe: str = '1m') -> Union[list, None]:
         dashless_symbol = jh.dashless_symbol(symbol)
-        interval = timeframe_to_in
+        interval = timeframe_to_interval(timeframe)
+
+        payload = {
+            'interval': interval,
+            'symbol': dashless_symbol,
+            'from': int(start_timestamp / 1000),
+            'limit': self.count,
+        }
+
+        response = requests.get(self.endpoint + '/public/linear/kline', params=payload)
+
+        self.validate_response(response)
+
+        data = response.json()
+
+        if data['ret_code'] != 0:
+            raise exceptions.ExchangeError(data['ret_msg'])
+
+        data = data['result']
+
+        return [
+            {
+                'id': jh.generate_unique_id(),
+                'exchange': self.name,
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'timestamp': int(d['open_time']) * 1000,
+                'open': float(d['open']),
+                'close': float(d['close']),
+                'high': float(d['high']),
+                'low': float(d['low']),
+                'volume': float(d['volume'])
+            } for d in data
+        ]
