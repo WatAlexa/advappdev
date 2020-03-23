@@ -1,29 +1,34 @@
+
 from typing import Union
 import requests
 from jesse.modes.import_candles_mode.drivers.interface import CandleExchange
-from .bitget_spot_utils import timeframe_to_interval
+from .bitget_utils import timeframe_to_interval
 import jesse.helpers as jh
 from jesse.enums import exchanges
 from jesse import exceptions
 
 
-class BitgetSpot(CandleExchange):
-    def __init__(self) -> None:
+class BitgetUSDTPerpetualMain(CandleExchange):
+    def __init__(
+            self,
+            name: str,
+            endpoint: str,
+    ) -> None:
         super().__init__(
-            name=exchanges.BITGET_SPOT,
+            name=name,
             count=100,
             rate_limit_per_second=18,
             backup_exchange_class=None
         )
 
-        self.endpoint = 'https://api.bitget.com/api/spot/v1/market/candles'
+        self.endpoint = endpoint
 
     def get_starting_time(self, symbol: str) -> int:
         payload = {
-            'after': 1359291660000,
-            'before': jh.now(force_fresh=True),
-            'period': '1week',
-            'symbol': self._jesse_symbol_to_bitget_usdt_contracts_symbol(symbol),
+            'granularity': '1W',
+            'symbol': self.jesse_symbol_to_bitget_usdt_contracts_symbol(symbol),
+            'startTime': 1359291660000,
+            'endTime': jh.now(force_fresh=True)
         }
 
         response = requests.get(self.endpoint, params=payload)
@@ -40,10 +45,10 @@ class BitgetSpot(CandleExchange):
         end_timestamp = start_timestamp + (self.count - 1) * 60000 * jh.timeframe_to_one_minutes(timeframe)
 
         payload = {
-            'period': timeframe_to_interval(timeframe),
-            'symbol': self._jesse_symbol_to_bitget_usdt_contracts_symbol(symbol),
-            'after': int(start_timestamp),
-            'before': int(end_timestamp)
+            'granularity': timeframe_to_interval(timeframe),
+            'symbol': self.jesse_symbol_to_bitget_usdt_contracts_symbol(symbol),
+            'startTime': int(start_timestamp),
+            'endTime': int(end_timestamp)
         }
 
         response = requests.get(self.endpoint, params=payload)
@@ -58,18 +63,22 @@ class BitgetSpot(CandleExchange):
                 'exchange': self.name,
                 'symbol': symbol,
                 'timeframe': timeframe,
-                'timestamp': int(d['ts']),
-                'open': float(d['open']),
-                'high': float(d['high']),
-                'low': float(d['low']),
-                'close': float(d['close']),
-                'volume': float(d['baseVol'])
+                'timestamp': int(d[0]),
+                'open': float(d[1]),
+                'high': float(d[2]),
+                'low': float(d[3]),
+                'close': float(d[4]),
+                'volume': float(d[5])
             } for d in data
         ]
 
-    @staticmethod
-    def _jesse_symbol_to_bitget_usdt_contracts_symbol(symbol: str) -> str:
-        return f'{jh.dashless_symbol(symbol)}_SPBL'
+    def jesse_symbol_to_bitget_usdt_contracts_symbol(self, symbol: str) -> str:
+        if self.name == exchanges.BITGET_USDT_PERPETUAL:
+            return f'{jh.dashless_symbol(symbol)}_UMCBL'
+        elif self.name == exchanges.BITGET_USDT_PERPETUAL_TESTNET:
+            return f'{jh.dashless_symbol(symbol)}_SUMCBL'
+        else:
+            raise NotImplemented('Invalid exchange: {}'.format(self.name))
 
     def validate_bitget_response(self, response):
         data = response.json()
@@ -77,7 +86,8 @@ class BitgetSpot(CandleExchange):
         # 40019: wrong symbol
         if response.status_code == 400 and data['code'] == "40019":
             msg = 'Symbol not found. Check the symbol and try again.'
-            msg += f' Example of a valid symbol for "{self.name}": "BTC-USDT"'
+            if self.name == exchanges.BITGET_USDT_PERPETUAL_TESTNET:
+                msg += f' Example of a valid symbol for "{self.name}": "SBTC-SUSDT"'
             raise exceptions.SymbolNotFound(msg)
 
         self.validate_response(response)
