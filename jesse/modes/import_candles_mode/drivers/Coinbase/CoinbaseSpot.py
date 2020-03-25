@@ -53,4 +53,18 @@ class CoinbaseSpot(CandleExchange):
 
         self.validate_response(response)
 
-        data
+        data = response.json()
+        return [
+            {
+                'id': jh.generate_unique_id(),
+                'exchange': self.name,
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'timestamp': int(d[0]) * 1000,
+                'open': float(d[3]),
+                'close': float(d[4]),
+                'high': float(d[2]),
+                'low': float(d[1]),
+                'volume': float(d[5])
+            } for d in data
+        ]
