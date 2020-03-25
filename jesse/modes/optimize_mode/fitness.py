@@ -68,4 +68,127 @@ def get_fitness(
             ratio_normalized = jh.normalize(ratio, -.5, 15)
         elif ratio_config == 'omega':
             ratio = training_data_metrics['omega_ratio']
-            ratio_normalized = jh.normalize(ratio, -.5, 
+            ratio_normalized = jh.normalize(ratio, -.5, 5)
+        elif ratio_config == 'serenity':
+            ratio = training_data_metrics['serenity_index']
+            ratio_normalized = jh.normalize(ratio, -.5, 15)
+        elif ratio_config == 'smart sharpe':
+            ratio = training_data_metrics['smart_sharpe']
+            ratio_normalized = jh.normalize(ratio, -.5, 5)
+        elif ratio_config == 'smart sortino':
+            ratio = training_data_metrics['smart_sortino']
+            ratio_normalized = jh.normalize(ratio, -.5, 15)
+        else:
+            raise ValueError(
+                f'The entered ratio configuration `{ratio_config}` for the optimization is unknown. Choose between sharpe, calmar, sortino, serenity, smart shapre, smart sortino and omega.')
+
+        if ratio < 0:
+            score = 0.0001
+            logger.log_optimize_mode(f"NEGATIVE RATIO: DNA is not usable => {ratio_config}: {ratio}, total: {training_data_metrics['total']}")
+            return score, training_log, testing_log
+
+        # log for debugging/monitoring
+        training_log = {
+            'win-rate': int(training_data_metrics['win_rate'] * 100),
+            'total': training_data_metrics['total'],
+            'PNL': round(training_data_metrics['net_profit_percentage'], 2)
+        }
+
+        score = total_effect_rate * ratio_normalized
+        # if score is numpy nan, replace it with 0.0001
+        if np.isnan(score):
+            logger.log_optimize_mode(f'Score is nan. DNA is invalid')
+            score = 0.0001
+        # elif jh.is_debugging():
+        else:
+            logger.log_optimize_mode(f"Name: {dna} - DNA is usable => {ratio_config}: {round(ratio, 2)}, total: {training_data_metrics['total']}, PNL%: {round(training_data_metrics['net_profit_percentage'], 2)}%, win-rate: {round(training_data_metrics['win_rate']*100, 2)}%")
+
+        # run backtest simulation
+        testing_data_metrics = isolated_backtest(
+            _formatted_inputs_for_isolated_backtest(optimization_config, routes),
+            routes,
+            extra_routes,
+            testing_candles,
+            hyperparameters=hp
+        )['metrics']
+
+        # log for debugging/monitoring
+        if testing_data_metrics['total'] > 0:
+            testing_log = {
+                'win-rate': int(testing_data_metrics['win_rate'] * 100), 'total': testing_data_metrics['total'],
+                'PNL': round(testing_data_metrics['net_profit_percentage'], 2)
+            }
+    else:
+        logger.log_optimize_mode(f'Less than 5 trades in the training data. DNA is invalid')
+        score = 0.0001
+
+    return score, training_log, testing_log
+
+
+def get_and_add_fitness_to_the_bucket(
+        dna_bucket, optimization_config, routes: list, extra_routes: list, strategy_hp, dna, training_candles,
+        testing_candles, optimal_total
+) -> None:
+    """
+    Calculates the fitness and adds the result into the dna_bucket (which is the object passed among workers)
+    """
+    try:
+        # check if the DNA is already in the list
+        if all(dna_tuple[0] != dna for dna_tuple in dna_bucket):
+            fitness_score, fitness_log_training, fitness_log_testing = get_fitness(
+                optimization_config, routes, extra_routes, strategy_hp, dna, training_candles, testing_candles,
+                optimal_total
+            )
+            dna_bucket.append((dna, fitness_score, fitness_log_training, fitness_log_testing))
+        else:
+            raise ValueError(f"Initial Population: Double DNA: {dna}")
+    except Exception as e:
+        pid = os.getpid()
+        logger.log_optimize_mode(f"process failed (ID: {pid}):\n{e}")
+
+
+def make_love(
+    mommy, daddy, solution_len,
+    optimization_config, routes, extra_routes, strategy_hp, training_candles, testing_candles, optimal_total
+) -> dict:
+    dna = ''.join(
+        daddy['dna'][i] if i % 2 == 0 else mommy['dna'][i] for i in range(solution_len)
+    )
+
+    # not found - so run the backtest
+    fitness_score, fitness_log_training, fitness_log_testing = get_fitness(
+        optimization_config, routes, extra_routes, strategy_hp, dna, training_candles, testing_candles, optimal_total
+    )
+
+    return {
+        'dna': dna,
+        'fitness': fitness_score,
+        'training_log': fitness_log_training,
+        'testing_log': fitness_log_testing
+    }
+
+
+def mutate(
+        baby, solution_len, charset,
+        optimization_config, routes, extra_routes, strategy_hp, training_candles, testing_candles, optimal_total
+) -> dict:
+    replace_at = randint(0, solution_len - 1)
+    replace_with = choice(charset)
+    dna = f"{baby['dna'][:replace_at]}{replace_with}{baby['dna'][replace_at + 1:]}"
+
+    # not found - so run the backtest
+    fitness_score, fitness_log_training, fitness_log_testing = get_fitness(
+        optimization_config, routes, extra_routes, strategy_hp, dna, training_candles, testing_candles, optimal_total
+    )
+
+    return {
+        'dna': dna,
+        'fitness': fitness_score,
+        'training_log': fitness_log_training,
+        'testing_log': fitness_log_testing
+    }
+
+
+def create_baby(
+    people_bucket: list, mommy, daddy, solution_len, charset,
+    optimization_config, routes,
