@@ -191,4 +191,20 @@ def mutate(
 
 def create_baby(
     people_bucket: list, mommy, daddy, solution_len, charset,
-    optimization_config, routes,
+    optimization_config, routes, extra_routes, strategy_hp, training_candles, testing_candles, optimal_total
+) -> None:
+    try:
+        # let's make a baby together 👀
+        baby = make_love(
+            mommy, daddy, solution_len,
+            optimization_config, routes, extra_routes, strategy_hp, training_candles, testing_candles, optimal_total
+        )
+        # let's mutate baby's genes, who knows, maybe we create a x-man or something
+        baby = mutate(
+            baby, solution_len, charset,
+            optimization_config, routes, extra_routes, strategy_hp, training_candles, testing_candles, optimal_total
+        )
+        people_bucket.append(baby)
+    except Exception as e:
+        pid = os.getpid()
+        logger.log_optimize_mode(f"process failed - ID: {pid}\n{e}")
