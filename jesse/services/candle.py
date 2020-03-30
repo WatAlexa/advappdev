@@ -86,4 +86,77 @@ def split_candle(candle: np.ndarray, price: float) -> tuple:
     l = candle[4]
     v = candle[5]
 
-    i
+    if is_bullish(candle) and l < price < o:
+        return np.array([
+            timestamp, o, price, o, price, v
+        ]), np.array([
+            timestamp, price, c, h, l, v
+        ])
+    elif price == o:
+        return candle, candle
+    elif is_bearish(candle) and o < price < h:
+        return np.array([
+            timestamp, o, price, price, o, v
+        ]), np.array([
+            timestamp, price, c, h, l, v
+        ])
+    elif is_bearish(candle) and l < price < c:
+        return np.array([
+            timestamp, o, price, h, price, v
+        ]), np.array([
+            timestamp, price, c, c, l, v
+        ])
+    elif is_bullish(candle) and c < price < h:
+        return np.array([
+            timestamp, o, price, price, l, v
+        ]), np.array([
+            timestamp, price, c, h, c, v
+        ]),
+    elif is_bearish(candle) and price == c:
+        return np.array([
+            timestamp, o, c, h, c, v
+        ]), np.array([
+            timestamp, price, price, price, l, v
+        ])
+    elif is_bullish(candle) and price == c:
+        return np.array([
+            timestamp, o, c, c, l, v
+        ]), np.array([
+            timestamp, price, price, h, price, v
+        ])
+    elif is_bearish(candle) and price == h:
+        return np.array([
+            timestamp, o, h, h, o, v
+        ]), np.array([
+            timestamp, h, c, h, l, v
+        ])
+    elif is_bullish(candle) and price == l:
+        return np.array([
+            timestamp, o, l, o, l, v
+        ]), np.array([
+            timestamp, l, c, h, l, v
+        ])
+    elif is_bearish(candle) and price == l:
+        return np.array([
+            timestamp, o, l, h, l, v
+        ]), np.array([
+            timestamp, l, c, c, l, v
+        ])
+    elif is_bullish(candle) and price == h:
+        return np.array([
+            timestamp, o, h, h, l, v
+        ]), np.array([
+            timestamp, h, c, h, c, v
+        ])
+    elif is_bearish(candle) and c < price < o:
+        return np.array([
+            timestamp, o, price, h, price, v
+        ]), np.array([
+            timestamp, price, c, price, l, v
+        ])
+    elif is_bullish(candle) and o < price < c:
+        return np.array([
+            timestamp, o, price, price, l, v
+        ]), np.array([
+            timestamp, price, c, h, price, v
+        ])
