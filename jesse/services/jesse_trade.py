@@ -68,4 +68,13 @@ def report_exception(
         'https://jesse.trade/api/exception',
         data=params,
         files=files,
-        headers={'Auth
+        headers={'Authorization': f'Bearer {access_token}'}
+    )
+
+    success_message = 'Exception report submitted successfully'
+    error_message = f"{res.status_code} error: {res.json()['message']}"
+
+    return JSONResponse({
+        'status': 'success' if res.status_code == 200 else 'error',
+        'message': success_message if res.status_code == 200 else error_message
+    }, status_code=200)
