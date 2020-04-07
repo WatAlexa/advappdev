@@ -143,4 +143,90 @@ def quantstats_tearsheet(buy_and_hold_returns: pd.Series, study_name: str) -> st
 #         vol_returns = _plots.returns(returns, benchmark, match_volatility=True, figsize=(8, 4), subtitle=False,
 #                                      show=False, ylabel=False, cumulative=compounded,
 #                                      prepare_returns=False)
-#         # Get
+#         # Get the data from the figure
+#         data['plot_vol_returns_strategy'] = vol_returns.get_axes()[0].get_lines()[0].get_data()
+#         data['plot_vol_returns_benchmark'] = vol_returns.get_axes()[0].get_lines()[1].get_data()
+#
+#     yearly_returns = _plots.yearly_returns(returns, benchmark, figsize=(8, 4), subtitle=False,
+#                                            show=False, ylabel=False, compounded=compounded,
+#                                            prepare_returns=False)
+#     ax = yearly_returns.gca()
+#
+#     data['plot_yearly_returns_labels'] = [l.get_text() for l in ax.get_xticklabels()]
+#     values = [rect.get_height() for rect in ax.patches]
+#     if benchmark is not None:
+#         split = [values[i:i + len(data['plot_yearly_returns_labels'])] for i in range(0, len(values), len(data['plot_yearly_returns_labels']))]
+#
+#         data['plot_yearly_returns_strategy'] = split[1::2][0] # Start at second element, then every other.
+#         data['plot_yearly_returns_benchmark'] = split[::2][0] # Start at first element, then every other.
+#     else:
+#         data['plot_yearly_returns_strategy'] = values
+#
+#     data['plot_yearly_returns_mean'] = yearly_returns.get_axes()[0].get_lines()[0].get_ydata()[0]
+#
+#     histogram = _plots.histogram(returns, figsize=(8, 4), subtitle=False,
+#                                  show=False, ylabel=False, compounded=compounded,
+#                                  prepare_returns=False)
+#     # Get the data from the figure
+#     data['plot_distribution_kde'] = histogram.get_axes()[0].get_lines()[2].get_data()
+#
+#     ax = histogram.gca()
+#     y_values = [rect.get_height() for rect in ax.patches]
+#     x_values = [rect.get_x() for rect in ax.patches]
+#
+#     data['plot_distribution_mean'] = histogram.get_axes()[0].get_lines()[0].get_xdata()[0]
+#     data['plot_distribution_density'] = y_values
+#     data['plot_distribution_percentage'] = x_values
+#
+#     daily_returns = _plots.daily_returns(returns,
+#                                          figsize=(8, 3), subtitle=False,
+#                                          show=False, ylabel=False,
+#                                          prepare_returns=False)
+#     data['plot_daily_returns'] = daily_returns.get_axes()[0].get_lines()[0].get_data()
+#
+#     if benchmark is not None:
+#         rolling_beta = _plots.rolling_beta(returns, benchmark,
+#                                            figsize=(8, 3), subtitle=False,
+#                                            window1=win_half_year, window2=win_year,
+#                                            show=False, ylabel=False,
+#                                            prepare_returns=False)
+#         data['plot_rolling_beta_6m'] = rolling_beta.get_axes()[0].get_lines()[0].get_data()
+#         data['plot_rolling_beta_12m'] = rolling_beta.get_axes()[0].get_lines()[1].get_data()
+#         data['plot_rolling_beta_mean'] = rolling_beta.get_axes()[0].get_lines()[2].get_ydata()[0]
+#
+#     rolling_volatility = _plots.rolling_volatility(returns, benchmark,
+#                                                    figsize=(8, 3), subtitle=False,
+#                                                    show=False, ylabel=False, period=win_half_year,
+#                                                    periods_per_year=win_year)
+#
+#     # Get the data from the figure
+#     data['plot_rolling_volatility_strategy'] = rolling_volatility.get_axes()[0].get_lines()[0].get_data()
+#
+#     if benchmark is not None:
+#         data['plot_rolling_volatility_benchmark'] = rolling_volatility.get_axes()[0].get_lines()[1].get_data()
+#
+#     data['plot_rolling_volatility_mean'] = rolling_volatility.get_axes()[0].get_lines()[2].get_ydata()[0]
+#
+#     rolling_sharpe = _plots.rolling_sharpe(returns,
+#                                            figsize=(8, 3), subtitle=False,
+#                                            show=False, ylabel=False, period=win_half_year,
+#                                            periods_per_year=win_year)
+#
+#     data['plot_rolling_sharpe'] = rolling_sharpe.get_axes()[0].get_lines()[0].get_data()
+#
+#     data['plot_rolling_sharpe_mean'] = rolling_sharpe.get_axes()[0].get_lines()[1].get_ydata()[0]
+#
+#     rolling_sortino = _plots.rolling_sortino(returns,
+#                                              figsize=(8, 3), subtitle=False,
+#                                              show=False, ylabel=False, period=win_half_year,
+#                                              periods_per_year=win_year)
+#
+#     data['plot_rolling_sortino'] = rolling_sortino.get_axes()[0].get_lines()[0].get_data()
+#
+#     data['plot_rolling_sortino_mean'] = rolling_sortino.get_axes()[0].get_lines()[1].get_ydata()[0]
+#
+#     drawdowns_periods = _plots.drawdowns_periods(returns, figsize=(8, 4), subtitle=False,
+#                                                  show=False, ylabel=False, compounded=compounded,
+#                                                  prepare_returns=False)
+#
+#     data['plot_drawdowns_periods'] = drawdowns_
