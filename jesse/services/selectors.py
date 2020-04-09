@@ -53,4 +53,45 @@ def get_trading_exchange():
 
 
 def get_all_exchanges() -> ValuesView[Any]:
-    from jesse.store
+    from jesse.store import store
+    return store.exchanges.storage.values()
+
+
+def get_strategy(exchange: str, symbol: str) -> Any:
+    if exchange is None or symbol is None:
+        raise ValueError(f"exchange and symbol cannot be None. exchange: {exchange}, symbol: {symbol}")
+
+    from jesse.routes import router
+    r = next(r for r in router.routes
+             if r.exchange == exchange and r.symbol == symbol)
+    return r.strategy
+
+
+def get_route(exchange: str, symbol: str) -> Optional[Any]:
+    if exchange is None or symbol is None:
+        raise ValueError(f"exchange and symbol cannot be None. exchange: {exchange}, symbol: {symbol}")
+
+    from jesse.routes import router
+    return next(
+        (
+            r
+            for r in router.routes
+            if r.exchange == exchange and r.symbol == symbol
+        ),
+        None,
+    )
+
+
+def get_all_trading_routes() -> List[Any]:
+    from jesse.routes import router
+    return router.routes
+
+
+def get_all_extra_routes() -> List[Any]:
+    from jesse.routes import router
+    return router.formatted_extra_routes
+
+
+def get_all_routes() -> List[Any]:
+    from jesse.routes import router
+    return router.all_formatted_routes
