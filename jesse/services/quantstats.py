@@ -229,4 +229,37 @@ def quantstats_tearsheet(buy_and_hold_returns: pd.Series, study_name: str) -> st
 #                                                  show=False, ylabel=False, compounded=compounded,
 #                                                  prepare_returns=False)
 #
-#     data['plot_drawdowns_periods'] = drawdowns_
+#     data['plot_drawdowns_periods'] = drawdowns_periods.get_axes()[0].get_lines()[0].get_data()
+#
+#     under_water = _plots.drawdown(returns,
+#                     figsize=(8, 3), subtitle=False,
+#                     show=False, ylabel=False)
+#
+#     data['plot_under_water'] = under_water.get_axes()[0].get_lines()[0].get_data()
+#
+#     data['plot_under_water_mean'] = under_water.get_axes()[0].get_lines()[1].get_ydata()[0]
+#
+#     port = pd.DataFrame(returns.fillna(0))
+#     port.columns = ['Daily']
+#
+#     apply_fnc = _stats.comp if compounded else np.sum
+#
+#     port['Weekly'] = port['Daily'].resample(
+#         'W-MON').apply(apply_fnc)
+#     port['Weekly'].ffill(inplace=True)
+#
+#     port['Monthly'] = port['Daily'].resample(
+#         'M').apply(apply_fnc)
+#     port['Monthly'].ffill(inplace=True)
+#
+#     port['Quarterly'] = port['Daily'].resample(
+#         'Q').apply(apply_fnc)
+#     port['Quarterly'].ffill(inplace=True)
+#
+#     port['Yearly'] = port['Daily'].resample(
+#         'A').apply(apply_fnc)
+#
+#     data['quantile'] = port
+#
+#     return data
+#
