@@ -52,3 +52,19 @@ class TradesState:
 
             self.temp_storage[key].flush()
         self.temp_storage[key].append(trade)
+
+    def get_trades(self, exchange: str, symbol: str) -> List[Trade]:
+        key = jh.key(exchange, symbol)
+        return self.storage[key][:]
+
+    def get_current_trade(self, exchange: str, symbol: str) -> Trade:
+        key = jh.key(exchange, symbol)
+        return self.storage[key][-1]
+
+    def get_past_trade(self, exchange: str, symbol: str, number_of_trades_ago: int) -> Trade:
+        if number_of_trades_ago > 120:
+            raise ValueError('Max accepted value for number_of_trades_ago is 120')
+
+        number_of_trades_ago = abs(number_of_trades_ago)
+        key = jh.key(exchange, symbol)
+        return self.storage[key][-1 - number_of_trades_ago]
