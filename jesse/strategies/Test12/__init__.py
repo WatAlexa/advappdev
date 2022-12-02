@@ -1,8 +1,8 @@
 from jesse.strategies import Strategy
 
 
-# test_taking_profit_at_multiple_points
-class Test10(Strategy):
+# test_modifying_take_profit_after_opening_position
+class Test12(Strategy):
     def should_long(self):
         return self.price < 7
 
@@ -27,3 +27,7 @@ class Test10(Strategy):
 
     def filters(self):
         return []
+
+    def update_position(self):
+        if self.price == 10:
+            self.take_profit = self.position.qty, 16

@@ -1,23 +1,24 @@
+
 from jesse.strategies import Strategy
 
 
-# test_taking_profit_at_multiple_points
-class Test10(Strategy):
+# test_on_reduced_position
+class Test18(Strategy):
     def should_long(self):
         return self.price < 7
 
-    def should_short(self):
-        return False
-
     def go_long(self):
-        qty = 1.5
+        qty = 2
+
         self.buy = qty, 7
         self.stop_loss = qty, 5
         self.take_profit = [
-            (0.5, 11),
-            (0.5, 13),
-            (0.5, 15)
+            (1, 15),
+            (1, 13)
         ]
+
+    def on_reduced_position(self, order):
+        self.take_profit = abs(self.position.qty), self.price
 
     def go_short(self):
         pass
@@ -27,3 +28,6 @@ class Test10(Strategy):
 
     def filters(self):
         return []
+
+    def should_short(self):
+        return False

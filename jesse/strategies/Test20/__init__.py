@@ -1,23 +1,21 @@
 from jesse.strategies import Strategy
 
 
-# test_taking_profit_at_multiple_points
-class Test10(Strategy):
+# test_conflicting_orders_2
+class Test20(Strategy):
     def should_long(self):
-        return self.price < 7
+        return self.index == 1
 
     def should_short(self):
         return False
 
     def go_long(self):
-        qty = 1.5
-        self.buy = qty, 7
-        self.stop_loss = qty, 5
-        self.take_profit = [
-            (0.5, 11),
-            (0.5, 13),
-            (0.5, 15)
-        ]
+        # self.price: 2
+        qty = 1
+
+        self.buy = qty, self.price + .5
+        self.stop_loss = qty, self.price + .4
+        self.take_profit = qty, self.price + .6
 
     def go_short(self):
         pass
