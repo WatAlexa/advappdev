@@ -1,10 +1,10 @@
 from jesse.strategies import Strategy
 
 
-# test_on_route_open_position part 1 - BTC-USD
-class Test21(Strategy):
+# test_on_route_close_position part 1 - BTC-USD
+class Test25(Strategy):
     def should_long(self):
-        # buy on market at first candle, close when on_route_open_position event is fired
+        # buy on market at first candle, close when on_route_stop_loss event is fired
         return self.index == 0
 
     def should_short(self):
@@ -20,5 +20,5 @@ class Test21(Strategy):
     def should_cancel_entry(self):
         return False
 
-    def on_route_open_position(self, strategy):
+    def on_route_close_position(self, strategy):
         self.take_profit = 1, self.price
