@@ -67,4 +67,9 @@ class TestBalanceAndFeeReductionWorksCorrectlyInSpotModeInBothBuyAndSellOrders(S
         assert self.balance == 9966 + 14.970015 + 33.932034
         self.vars['called_on_close_position'] = True
 
-        # just in case asser
+        # just in case assert the amounts in the exchange
+        assert self.position.exchange.assets['USDT'] == self.balance
+        assert self.position.exchange.assets['BTC'] == self.position.qty == 0
+
+    def should_cancel_entry(self):
+        return False
