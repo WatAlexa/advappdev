@@ -20,4 +20,16 @@ class Test47(Strategy):
     def should_cancel_entry(self):
         return False
 
-    def filters
+    def filters(self):
+        return [
+            self.filter_1()
+        ]
+
+    def filter_1(self):
+        if self.index == 0:
+            return False
+
+        if self.index == 10:
+            return False
+
+        return True
