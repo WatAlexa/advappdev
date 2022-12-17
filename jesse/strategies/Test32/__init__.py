@@ -15,3 +15,15 @@ class Test32(Strategy):
 
     def should_long(self):
         return False
+
+    def should_short(self):
+        return False
+
+    def go_long(self):
+        pass
+
+    def go_short(self):
+        pass
+
+    def should_cancel_entry(self):
+        return False
