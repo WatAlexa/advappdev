@@ -74,4 +74,5 @@ def test_more_than_one_set_of_candles_in_the_middle_are_absent():
     candles = importer._fill_absent_candles(candles, start, end)
 
     assert len(candles) == 7
-    assert candles[0
+    assert candles[0]['timestamp'] == start
+    assert candles[-1]['timestamp'] == end
